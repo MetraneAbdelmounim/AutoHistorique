@@ -1,17 +1,14 @@
 services:
-  # ─── MongoDB ──────────────────────────────────────────────
+  # ─── MongoDB (no auth — only reachable on internal docker network) ──
   mongo:
     image: mongo:7
     restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS}
-      MONGO_INITDB_DATABASE: ${MONGO_DB:-autohistorique}
+    command: ["mongod", "--bind_ip_all"]
     volumes:
       - mongo_data:/data/db
     networks:
       - internal
-    # No public port — only reachable by the backend container
+    # No public port — only the api container can reach it via "mongo:27017"
 
   # ─── Node API ─────────────────────────────────────────────
   api:
@@ -24,9 +21,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      # Prefer MONGO_URI from .env if set; otherwise compose one from the parts.
-      # If your password has @ : / # you MUST set MONGO_URI directly (URL-encoded).
-      MONGO_URI: ${MONGO_URI:-mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASS}@mongo:27017/${MONGO_DB:-autohistorique}?authSource=admin}
+      MONGO_URI: mongodb://mongo:27017/${MONGO_DB:-autohistorique}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
       FRONTEND_URL: ${FRONTEND_URL}
