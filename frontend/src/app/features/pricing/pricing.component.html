@@ -1,0 +1,122 @@
+<app-navbar></app-navbar>
+
+<main class="pricing-page">
+  <div class="container">
+
+    <!-- Hero -->
+    <section class="pricing-hero">
+      <div class="hero-badge">Tarification simple</div>
+      <h1>Un prix unique,<br><span class="accent">sans surprise</span></h1>
+      <p>Payez uniquement pour ce dont vous avez besoin. Pas d'abonnement, pas d'engagement.</p>
+    </section>
+
+    <!-- Pricing card -->
+    <section class="pricing-main">
+      <div class="pricing-card">
+        <div class="card-left">
+          <div class="price-tag">
+            <span class="currency">MAD</span>
+            <span class="amount">69</span>
+            <span class="per">/ rapport</span>
+          </div>
+          <p class="price-desc">Un seul paiement pour accéder à l'historique complet d'un véhicule.</p>
+          <a [routerLink]="authService.isLoggedIn ? '/search' : '/auth/register'" class="btn-cta">
+            {{ authService.isLoggedIn ? 'Faire une recherche' : 'Commencer maintenant' }}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <p class="no-card">Paiement sécurisé via CMI · Carte bancaire marocaine</p>
+        </div>
+
+        <div class="card-right">
+          <div class="includes-title">Ce qui est inclus</div>
+          <ul class="includes-list">
+            <li>
+              <span class="check">✓</span>
+              <div>
+                <strong>Historique complet des accidents</strong>
+                <span>Tous les sinistres déclarés aux assurances</span>
+              </div>
+            </li>
+            <li>
+              <span class="check">✓</span>
+              <div>
+                <strong>Score de confiance</strong>
+                <span>Évaluation du risque du véhicule</span>
+              </div>
+            </li>
+            <li>
+              <span class="check">✓</span>
+              <div>
+                <strong>Détail par sinistre</strong>
+                <span>Type de choc, gravité, montant, réparation</span>
+              </div>
+            </li>
+            <li>
+              <span class="check">✓</span>
+              <div>
+                <strong>Rapport imprimable PDF</strong>
+                <span>À présenter lors de votre achat</span>
+              </div>
+            </li>
+            <li>
+              <span class="check">✓</span>
+              <div>
+                <strong>Données temps réel</strong>
+                <span>Synchronisées avec les assurances partenaires</span>
+              </div>
+            </li>
+            <li>
+              <span class="check">✓</span>
+              <div>
+                <strong>Valide 30 jours</strong>
+                <span>Accès illimité au rapport acheté</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Pro banner -->
+      <div class="pro-banner">
+        <div class="pro-text">
+          <div class="pro-badge">PRO</div>
+          <div>
+            <strong>Vous êtes un professionnel ?</strong>
+            <span>Marchands auto, agences, concessionnaires — contactez-nous pour un tarif volume.</span>
+          </div>
+        </div>
+        <a href="mailto:pro@autohistorique.ma" class="btn-pro">Nous contacter</a>
+      </div>
+    </section>
+
+    <!-- Assurances partenaires -->
+    <section class="partners">
+      <p class="partners-label">Données issues des assurances partenaires</p>
+      <div class="partners-list">
+        <div class="partner-chip">Wafa Assurance</div>
+        <div class="partner-chip">AXA Maroc</div>
+        <div class="partner-chip">RMA Assurance</div>
+        <div class="partner-chip">Saham Assurance</div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq">
+      <h2>Questions fréquentes</h2>
+      <div class="faq-list">
+        <div *ngFor="let faq of faqs" class="faq-item" [class.open]="faq.open" (click)="toggle(faq)">
+          <div class="faq-question">
+            {{ faq.q }}
+            <svg class="faq-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </div>
+          <div class="faq-answer" *ngIf="faq.open">{{ faq.a }}</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>

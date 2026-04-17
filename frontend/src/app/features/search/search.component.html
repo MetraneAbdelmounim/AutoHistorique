@@ -1,0 +1,308 @@
+<app-navbar></app-navbar>
+
+<main class="search-page">
+  <div class="container">
+
+    <div class="page-header">
+      <h1>Rechercher un véhicule</h1>
+      <p>Entrez l'immatriculation pour consulter l'historique des accidents déclarés</p>
+    </div>
+
+    <div class="search-card">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="search-input-group">
+          <div class="plate-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="1" y="6" width="22" height="12" rx="3"/>
+              <circle cx="6" cy="12" r="1.5" fill="currentColor"/>
+              <circle cx="18" cy="12" r="1.5" fill="currentColor"/>
+              <line x1="9" y1="12" x2="15" y2="12"/>
+            </svg>
+          </div>
+          <label for="immat-search" class="sr-only">Immatriculation du véhicule</label>
+          <input id="immat-search" type="text" formControlName="immatriculation"
+            placeholder="Ex: 123456-A-78 ou 12345-WW"
+            class="search-input"
+            inputmode="text"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            enterkeyhint="search"
+            (input)="rapport = null; errorMsg = ''">
+          <button type="submit" class="search-btn" [disabled]="loading" aria-label="Rechercher">
+            <span *ngIf="!loading">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              <span class="search-btn-text">Rechercher</span>
+            </span>
+            <span *ngIf="loading" class="spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
+      <div class="exemples">
+        <span class="exemples-label">Exemples :</span>
+        <button *ngFor="let ex of exemples" class="exemple-chip" (click)="fillExemple(ex)">{{ ex }}</button>
+      </div>
+    </div>
+
+    <div *ngIf="errorMsg" class="alert-error">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      {{ errorMsg }}
+    </div>
+
+    <!-- Résultat -->
+    <div *ngIf="rapport" class="rapport-wrapper">
+
+      <!-- En-tête -->
+      <div class="rapport-header">
+        <div class="rapport-id">
+          <div class="plaque">{{ rapport.immatriculation }}</div>
+          <span class="type-badge" [class.transit]="rapport.type === 'transit'">
+            {{ rapport.type === 'transit' ? 'Transit (W)' : 'Classique' }}
+          </span>
+        </div>
+        <!-- Bouton rapport selon état paiement -->
+        <button *ngIf="!isPaid" class="btn-unlock" (click)="openPayModal()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Rapport complet — 69 DH
+        </button>
+        <button *ngIf="isPaid" class="btn-rapport-paid" (click)="voirRapportComplet()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Voir le rapport complet
+        </button>
+      </div>
+
+      <!-- Aperçu gratuit -->
+      <div class="apercu-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+        Aperçu gratuit
+      </div>
+
+      <!-- Free preview: only identification (no accident data) -->
+      <div class="info-grid info-grid-preview">
+        <div class="info-card">
+          <div class="info-label">Marque / Modèle</div>
+          <div class="info-value">{{ rapport.vehicule?.marque || '—' }} {{ rapport.vehicule?.modele ? '· ' + rapport.vehicule?.modele : '' }}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Année</div>
+          <div class="info-value">{{ rapport.vehicule?.annee || '—' }}</div>
+        </div>
+
+        <!-- Masked cards: accidents count + score -->
+        <div *ngIf="!isPaid" class="info-card info-card-locked" (click)="openPayModal()">
+          <div class="info-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Accidents déclarés
+          </div>
+          <div class="info-value masked">•••</div>
+        </div>
+        <div *ngIf="!isPaid" class="info-card info-card-locked" (click)="openPayModal()">
+          <div class="info-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Score de confiance
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar"><div class="score-fill masked-fill"></div></div>
+            <span class="score-label masked">•••</span>
+          </div>
+        </div>
+
+        <!-- Unlocked: show real data -->
+        <div *ngIf="isPaid" class="info-card">
+          <div class="info-label">Accidents déclarés</div>
+          <div class="info-value" [class.accent]="rapport.nombreAccidents > 0">{{ rapport.nombreAccidents }}</div>
+        </div>
+        <div *ngIf="isPaid" class="info-card score-card" [ngClass]="scoreClass">
+          <div class="info-label">Score de confiance</div>
+          <div class="score-bar-wrap">
+            <div class="score-bar"><div class="score-fill" [style.width.%]="scorePercent"></div></div>
+            <span class="score-label">{{ rapport.scoreConfiance.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bloc bloqué si non payé -->
+      <div *ngIf="!isPaid" class="locked-block">
+        <div class="locked-overlay">
+          <div class="locked-content">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <h3>Rapport complet</h3>
+            <p>Débloquez le nombre d'accidents, le score de confiance, le détail de chaque sinistre et le PDF à télécharger.</p>
+            <button class="btn-unlock-big" (click)="openPayModal()">
+              Débloquer pour 69 DH
+            </button>
+          </div>
+        </div>
+        <!-- Faux aperçu flou -->
+        <div class="blurred-preview">
+          <div class="fake-row" *ngFor="let i of [1,2,3]">
+            <div class="fake-date"></div>
+            <div class="fake-badge"></div>
+            <div class="fake-text"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accidents débloqués -->
+      <div *ngIf="isPaid && rapport.nombreAccidents > 0" class="accidents-section">
+        <h3>Historique des accidents</h3>
+        <div class="accidents-list">
+          <div *ngFor="let acc of rapport.accidents; let i = index" class="accident-row">
+            <div class="acc-index">{{ i + 1 }}</div>
+            <div class="acc-body">
+              <div class="acc-top">
+                <span class="acc-date">{{ formatDate(acc.dateAccident) }}</span>
+                <span class="acc-gravite" [ngClass]="graviteClass(acc.gravite)">{{ graviteLabel(acc.gravite) }}</span>
+              </div>
+              <div class="acc-details">
+                <span *ngIf="acc.typeChoc">{{ acc.typeChoc | replace:'_':' ' }}</span>
+                <span *ngIf="acc.compagnieAssurance"> · {{ acc.compagnieAssurance }}</span>
+                <span *ngIf="acc.montantDommage"> · {{ acc.montantDommage | number }} DH</span>
+                <span *ngIf="acc.lieu"> · {{ acc.lieu }}</span>
+              </div>
+              <div class="acc-desc" *ngIf="acc.description">{{ acc.description }}</div>
+              <div class="acc-reparation" *ngIf="acc.reparationEffectuee">
+                <span class="rep-badge">✓ Réparation effectuée</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="isPaid && rapport.nombreAccidents === 0" class="no-accident">
+        <div class="no-accident-icon">✅</div>
+        <h3>Aucun accident déclaré</h3>
+        <p>Ce véhicule n'a aucun sinistre enregistré auprès des assurances partenaires.</p>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ── Modal paiement ──────────────────────────────────── -->
+<div class="modal-backdrop" *ngIf="showPayModal" (click)="closePayModal()" role="dialog" aria-modal="true" aria-labelledby="pay-modal-title">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <!-- Step: choice -->
+    <ng-container *ngIf="payStep === 'choice'">
+      <div class="modal-header">
+        <div class="modal-title" id="pay-modal-title">Débloquer le rapport</div>
+        <button class="modal-close" (click)="closePayModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-vehicle">
+          <div class="modal-plaque">{{ rapport?.immatriculation }}</div>
+          <span>Rapport historique complet</span>
+        </div>
+        <div class="modal-price-row">
+          <span>Rapport complet</span>
+          <span class="modal-price">69 MAD</span>
+        </div>
+        <div class="modal-divider"></div>
+        <div class="modal-total-row">
+          <span>Total</span>
+          <span class="modal-total">69 MAD</span>
+        </div>
+        <div class="pay-methods">
+          <button class="pay-method" (click)="selectCard()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+            Carte bancaire (CMI)
+            <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+        <p class="modal-secure">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Paiement sécurisé · CMI · SSL 256-bit
+        </p>
+      </div>
+    </ng-container>
+
+    <!-- Step: card form -->
+    <ng-container *ngIf="payStep === 'card'">
+      <div class="modal-header">
+        <button class="modal-back" (click)="payStep = 'choice'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="modal-title">Informations de paiement</div>
+        <button class="modal-close" (click)="closePayModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="card-form">
+          <div class="form-group">
+            <label>Numéro de carte</label>
+            <input type="text" placeholder="0000 0000 0000 0000" maxlength="19">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Expiration</label>
+              <input type="text" placeholder="MM/AA" maxlength="5">
+            </div>
+            <div class="form-group">
+              <label>CVV</label>
+              <input type="text" placeholder="•••" maxlength="3">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Nom sur la carte</label>
+            <input type="text" placeholder="YOUSSEF BENALI">
+          </div>
+        </div>
+        <button class="btn-pay" (click)="simulatePay()">
+          Payer 69 MAD
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+        <p class="modal-secure">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Paiement sécurisé · CMI · SSL 256-bit
+        </p>
+      </div>
+    </ng-container>
+
+    <!-- Step: processing -->
+    <ng-container *ngIf="payStep === 'processing'">
+      <div class="modal-body modal-centered">
+        <div class="pay-spinner"></div>
+        <p class="processing-text">Traitement du paiement...</p>
+      </div>
+    </ng-container>
+
+    <!-- Step: success -->
+    <ng-container *ngIf="payStep === 'success'">
+      <div class="modal-body modal-centered">
+        <div class="success-icon">✓</div>
+        <h3>Paiement confirmé !</h3>
+        <p>Votre rapport est maintenant disponible.</p>
+        <button class="btn-pay" (click)="voirRapportComplet()">
+          Voir le rapport complet
+        </button>
+      </div>
+    </ng-container>
+
+  </div>
+</div>

@@ -1,0 +1,82 @@
+<app-navbar></app-navbar>
+
+<main class="home">
+  <div class="container">
+
+    <!-- Hero -->
+    <section class="hero">
+      <p class="hero-eyebrow">
+        <span aria-hidden="true">👋</span>
+        {{ greeting }}, {{ user?.prenom }}
+      </p>
+      <h1>Vérifiez l'historique<br><span class="accent">de votre futur véhicule</span></h1>
+      <p class="hero-sub">
+        Consultez les accidents déclarés aux assurances marocaines avant d'acheter un véhicule d'occasion.
+      </p>
+
+      <!-- Search bar -->
+      <form [formGroup]="form" (ngSubmit)="onSearch()" class="search-hero" role="search">
+        <label for="search-immat" class="sr-only">Immatriculation du véhicule</label>
+        <div class="search-bar" [class.invalid]="form.get('immatriculation')?.invalid && form.get('immatriculation')?.touched">
+          <svg class="search-plate-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="1" y="6" width="22" height="12" rx="3"/>
+            <circle cx="6" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="18" cy="12" r="1.5" fill="currentColor"/>
+            <line x1="9" y1="12" x2="15" y2="12"/>
+          </svg>
+          <input
+            id="search-immat"
+            type="text"
+            formControlName="immatriculation"
+            placeholder="Ex: 123456-A-78"
+            class="search-input"
+            inputmode="text"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            enterkeyhint="search">
+          <button type="submit" class="search-btn" aria-label="Vérifier l'immatriculation">
+            <span class="search-btn-text">Vérifier</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+        <div class="format-hints">
+          <span>Formats acceptés :</span>
+          <code>123456-A-78</code>
+          <span>ou</span>
+          <code>12345-WW</code>
+        </div>
+      </form>
+    </section>
+
+    <!-- Marketing stats -->
+    <section class="stats-band" aria-label="Chiffres clés">
+      <div *ngFor="let s of marketingStats" class="stat-item">
+        <div class="stat-value">{{ s.value }}</div>
+        <div class="stat-label">{{ s.label }}</div>
+      </div>
+    </section>
+
+    <!-- Trust section -->
+    <section class="trust" aria-label="Avantages">
+      <div class="trust-card">
+        <div class="trust-icon" aria-hidden="true">🔒</div>
+        <h3>Données officielles</h3>
+        <p>Connecté directement aux bases de données des compagnies d'assurance agréées au Maroc.</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon" aria-hidden="true">⚡</div>
+        <h3>Résultat en secondes</h3>
+        <p>Entrez l'immatriculation et obtenez l'historique complet des sinistres déclarés instantanément.</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon" aria-hidden="true">📋</div>
+        <h3>Rapport imprimable</h3>
+        <p>Téléchargez ou imprimez le rapport officiel pour l'utiliser lors de votre achat.</p>
+      </div>
+    </section>
+
+  </div>
+</main>

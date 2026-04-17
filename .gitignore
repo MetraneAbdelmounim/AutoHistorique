@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out-tsc/
+
+# Environment files (keep templates, ignore actuals with real secrets)
+backend/.env
+# Keep .env.development and .env.production as templates
+
+# Angular cache
+.angular/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage
+coverage/

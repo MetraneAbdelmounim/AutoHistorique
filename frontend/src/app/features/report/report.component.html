@@ -1,0 +1,182 @@
+<app-navbar class="no-print"></app-navbar>
+
+<main class="report-page" *ngIf="rapport">
+  <div class="container">
+
+    <!-- Toolbar -->
+    <div class="toolbar no-print">
+      <a routerLink="/search" class="btn-back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Retour
+      </a>
+      <button class="btn-print" (click)="telechargerPdf()" [disabled]="downloading">
+        <svg *ngIf="!downloading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span *ngIf="downloading" class="pdf-spinner" aria-hidden="true"></span>
+        {{ downloading ? 'Génération...' : 'Télécharger PDF' }}
+      </button>
+    </div>
+
+    <!-- Report content -->
+    <div class="report-doc" #reportDoc>
+
+      <!-- Document header -->
+      <div class="doc-header">
+        <div class="doc-brand">
+          <div class="doc-logo">
+            <svg viewBox="0 0 40 40" fill="none">
+              <path d="M8 28L14 12H26L32 28" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M6 28H34" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="12" cy="30" r="2.5" fill="currentColor"/>
+              <circle cx="28" cy="30" r="2.5" fill="currentColor"/>
+            </svg>
+          </div>
+          <div>
+            <div class="doc-brand-name">AutoHistorique</div>
+            <div class="doc-brand-sub">Rapport officiel d'historique véhicule</div>
+          </div>
+        </div>
+        <div class="doc-meta">
+          <div class="doc-date">Généré le {{ dateGeneration }}</div>
+          <div class="doc-ref">Réf: AH-{{ rapport.immatriculation | uppercase }}</div>
+        </div>
+      </div>
+
+      <div class="doc-divider"></div>
+
+      <!-- Vehicle identity -->
+      <section class="doc-section">
+        <h2 class="section-title">Identification du véhicule</h2>
+        <div class="identity-grid">
+          <div class="identity-main">
+            <div class="big-plaque">{{ rapport.immatriculation }}</div>
+            <span class="type-tag" [class.transit]="rapport.type === 'transit'">
+              {{ rapport.type === 'transit' ? 'Immatriculation Transit (W)' : 'Immatriculation Classique' }}
+            </span>
+          </div>
+          <div class="vehicle-details" *ngIf="rapport.vehicule">
+            <div class="detail-row">
+              <span class="detail-label">Marque</span>
+              <span class="detail-value">{{ rapport.vehicule.marque || '—' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Modèle</span>
+              <span class="detail-value">{{ rapport.vehicule.modele || '—' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Année</span>
+              <span class="detail-value">{{ rapport.vehicule.annee || '—' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Carburant</span>
+              <span class="detail-value">{{ rapport.vehicule.typeCarburant || '—' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Couleur</span>
+              <span class="detail-value">{{ rapport.vehicule.couleur || '—' }}</span>
+            </div>
+          </div>
+          <div class="vehicle-details" *ngIf="!rapport.vehicule">
+            <p class="no-data">Informations véhicule non disponibles</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Score synthèse -->
+      <section class="doc-section">
+        <h2 class="section-title">Synthèse</h2>
+        <div class="synthese-grid">
+          <div class="synthese-card">
+            <div class="synthese-value" [style.color]="scoreColor">
+              {{ rapport.scoreConfiance.value }}
+              <span class="synthese-unit">/100</span>
+            </div>
+            <div class="synthese-label">Score de confiance</div>
+            <div class="synthese-sublabel" [style.color]="scoreColor">{{ rapport.scoreConfiance.label }}</div>
+          </div>
+          <div class="synthese-card">
+            <div class="synthese-value {{ rapport.nombreAccidents > 0 ? 'danger' : 'safe' }}">
+              {{ rapport.nombreAccidents }}
+            </div>
+            <div class="synthese-label">Accidents déclarés</div>
+          </div>
+          <div class="synthese-card score-bar-card">
+            <div class="score-meter">
+              <div class="meter-track">
+                <div class="meter-fill" [style.width.%]="rapport.scoreConfiance.value" [style.background]="scoreColor"></div>
+              </div>
+            </div>
+            <div class="synthese-sublabel">Niveau de risque estimé</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Accidents par année -->
+      <section class="doc-section" *ngIf="rapport.nombreAccidents > 0">
+        <h2 class="section-title">Détail des sinistres déclarés</h2>
+
+        <div *ngFor="let annee of anneesSorted" class="annee-group">
+          <div class="annee-header">{{ annee }}</div>
+          <div class="sinistres-list">
+            <div *ngFor="let acc of accidentsParAnnee[annee]; let i = index" class="sinistre-card">
+              <div class="sinistre-left">
+                <div class="sinistre-date">{{ formatDate(acc.dateAccident) }}</div>
+                <div class="sinistre-gravite gravite-{{acc.gravite}}">{{ graviteLabel(acc.gravite) }}</div>
+              </div>
+              <div class="sinistre-right">
+                <div class="sinistre-info-row" *ngIf="acc.typeChoc">
+                  <span class="si-label">Type de choc</span>
+                  <span class="si-val">{{ acc.typeChoc | titlecase | replace:'_':' ' }}</span>
+                </div>
+                <div class="sinistre-info-row">
+                  <span class="si-label">Assurance</span>
+                  <span class="si-val">{{ acc.compagnieAssurance }}</span>
+                </div>
+                <div class="sinistre-info-row" *ngIf="acc.responsabilite">
+                  <span class="si-label">Responsabilité</span>
+                  <span class="si-val">{{ responsabiliteLabel(acc.responsabilite) }}</span>
+                </div>
+                <div class="sinistre-info-row" *ngIf="acc.montantDommage">
+                  <span class="si-label">Montant dommage</span>
+                  <span class="si-val">{{ acc.montantDommage | number }} DH</span>
+                </div>
+                <div class="sinistre-info-row" *ngIf="acc.lieu">
+                  <span class="si-label">Lieu</span>
+                  <span class="si-val">{{ acc.lieu }}</span>
+                </div>
+                <div class="sinistre-info-row" *ngIf="acc.description">
+                  <span class="si-label">Description</span>
+                  <span class="si-val italic">{{ acc.description }}</span>
+                </div>
+                <div class="rep-status" [class.done]="acc.reparationEffectuee">
+                  {{ acc.reparationEffectuee ? '✓ Réparation effectuée' : '✗ Réparation non confirmée' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Aucun accident -->
+      <section class="doc-section" *ngIf="rapport.nombreAccidents === 0">
+        <div class="clean-record">
+          <div class="clean-icon">✅</div>
+          <h3>Véhicule sans antécédents</h3>
+          <p>Aucun accident n'a été déclaré auprès des compagnies d'assurance partenaires pour ce véhicule.</p>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <div class="doc-footer">
+        <p>Ce rapport est généré automatiquement à partir des données déclarées aux compagnies d'assurance partenaires au Maroc. AutoHistorique ne peut être tenu responsable d'accidents non déclarés.</p>
+        <p class="footer-brand">AutoHistorique.ma — {{ dateGeneration }}</p>
+      </div>
+
+    </div>
+  </div>
+</main>

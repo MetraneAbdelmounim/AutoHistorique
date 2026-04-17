@@ -1,0 +1,89 @@
+<div class="auth-wrapper">
+  <div class="auth-left">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 40 40" fill="none">
+          <path d="M8 28L14 12H26L32 28" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M6 28H34" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="12" cy="30" r="2.5" fill="currentColor"/>
+          <circle cx="28" cy="30" r="2.5" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="brand-name">AutoHistorique</span>
+    </div>
+    <div class="hero-content">
+      <h1>Rejoignez la plateforme</h1>
+      <p>Créez votre compte et commencez à vérifier l'historique des véhicules d'occasion au Maroc.</p>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-card">
+      <div class="auth-mobile-brand">
+        <div class="brand-logo" aria-hidden="true">
+          <svg viewBox="0 0 40 40" fill="none">
+            <path d="M8 28L14 12H26L32 28" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M6 28H34" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="12" cy="30" r="2.5" fill="currentColor"/>
+            <circle cx="28" cy="30" r="2.5" fill="currentColor"/>
+          </svg>
+        </div>
+        <span>AutoHistorique</span>
+      </div>
+      <div class="auth-card-header">
+        <h2>Créer un compte</h2>
+        <p>Inscription gratuite</p>
+      </div>
+
+      <div *ngIf="errorMsg" class="alert alert-error">{{ errorMsg }}</div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
+        <div class="form-row">
+          <div class="form-group" [class.has-error]="isInvalid('nom')">
+            <label for="reg-nom">Nom</label>
+            <input id="reg-nom" type="text" formControlName="nom" placeholder="Benali"
+                   autocomplete="family-name" autocapitalize="words" enterkeyhint="next">
+            <span class="error-msg" *ngIf="isInvalid('nom')">Requis</span>
+          </div>
+          <div class="form-group" [class.has-error]="isInvalid('prenom')">
+            <label for="reg-prenom">Prénom</label>
+            <input id="reg-prenom" type="text" formControlName="prenom" placeholder="Youssef"
+                   autocomplete="given-name" autocapitalize="words" enterkeyhint="next">
+            <span class="error-msg" *ngIf="isInvalid('prenom')">Requis</span>
+          </div>
+        </div>
+
+        <div class="form-group" [class.has-error]="isInvalid('email')">
+          <label for="reg-email">Email</label>
+          <input id="reg-email" type="email" formControlName="email" placeholder="vous@exemple.com"
+                 autocomplete="email" inputmode="email" autocapitalize="none"
+                 spellcheck="false" enterkeyhint="next">
+          <span class="error-msg" *ngIf="isInvalid('email')">Email invalide</span>
+        </div>
+
+        <div class="form-group" [class.has-error]="isInvalid('password')">
+          <label for="reg-pwd">Mot de passe</label>
+          <div class="input-with-toggle">
+            <input id="reg-pwd" [type]="showPwd ? 'text' : 'password'"
+                   formControlName="password" placeholder="Minimum 6 caractères"
+                   autocomplete="new-password" enterkeyhint="go">
+            <button type="button" class="toggle-pwd" (click)="showPwd = !showPwd"
+                    [attr.aria-label]="showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+              {{ showPwd ? '🙈' : '👁' }}
+            </button>
+          </div>
+          <span class="error-msg" *ngIf="isInvalid('password')">6 caractères minimum</span>
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="loading">
+          <span *ngIf="!loading">Créer mon compte</span>
+          <span *ngIf="loading" class="spinner"></span>
+        </button>
+      </form>
+
+      <p class="auth-link">
+        Déjà un compte ? <a routerLink="/auth/login">Se connecter</a>
+      </p>
+    </div>
+  </div>
+</div>
