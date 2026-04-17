@@ -18,39 +18,10 @@ const app = express();
 // Security
 app.use(helmet());
 
-const isDev = process.env.NODE_ENV === 'development';
-
-// Dev: allow localhost + LAN (so phones/tablets on Wi-Fi can hit the API)
-// Dev: allow Capacitor native origins (iOS / Android app shells)
-// Prod: FRONTEND_URL + Capacitor native origins (for the packaged mobile app)
-const devOriginPatterns = [
-  /^http:\/\/localhost(:\d+)?$/,
-  /^http:\/\/127\.0\.0\.1(:\d+)?$/,
-  /^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/,
-  /^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/,
-  /^http:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+(:\d+)?$/,
-  /^capacitor:\/\/localhost$/,
-  /^ionic:\/\/localhost$/,
-  /^http:\/\/localhost$/
-];
-
-// Capacitor WebView origins (always allowed — our own installed app)
-const nativeAppOrigins = [
-  'capacitor://localhost',
-  'https://localhost',
-  'ionic://localhost'
-];
-
+// CORS — allow all origins (reflect the request origin back so that
+// `credentials: true` keeps working; plain '*' is incompatible with credentials).
 app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin) return cb(null, true); // same-origin, curl, Capacitor native
-    if (nativeAppOrigins.includes(origin)) return cb(null, true);
-    if (isDev) {
-      if (devOriginPatterns.some(rx => rx.test(origin))) return cb(null, true);
-    }
-    if (origin === process.env.FRONTEND_URL) return cb(null, true);
-    return cb(new Error(`CORS: origin '${origin}' not allowed`));
-  },
+  origin: true,
   credentials: true
 }));
 
