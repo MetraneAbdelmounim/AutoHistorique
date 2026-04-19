@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Production backend (HTTP, no SSL) -->
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">102.50.247.101</domain>
+    <!-- Production backend over HTTPS (self-signed cert) -->
+    <!-- Trusts embedded cert + system CAs for this host only -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">10.190.100.176</domain>
+        <trust-anchors>
+            <!-- Drop the server cert at android/app/src/main/res/raw/server_cert.pem
+                 (PEM format) to have the APK trust it out-of-the-box. -->
+            <certificates src="@raw/server_cert" />
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
     </domain-config>
 
-    <!-- Dev backends (LAN / emulator) -->
+    <!-- Dev backends (emulator / LAN) over cleartext -->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">127.0.0.1</domain>
@@ -19,7 +27,7 @@
     <!-- Everything else: HTTPS only, system trust -->
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
-            <certificates src="system"/>
+            <certificates src="system" />
         </trust-anchors>
     </base-config>
 </network-security-config>

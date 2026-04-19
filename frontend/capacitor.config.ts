@@ -5,12 +5,6 @@ const config: CapacitorConfig = {
   appName: 'AutoHistorique',
   webDir: 'dist/autohistorique-frontend',
 
-  // Load the app over http://localhost so it can call the plain HTTP backend
-  // without Mixed-Content blocking.
-  server: {
-    androidScheme: 'http',
-  },
-
   ios: {
     contentInset: 'always',
     scheme: 'AutoHistorique',
@@ -20,7 +14,7 @@ const config: CapacitorConfig = {
 
   android: {
     backgroundColor: '#F7F8FA',
-    allowMixedContent: true,
+    allowMixedContent: false,
     captureInput: true,
     webContentsDebuggingEnabled: false,
   },
