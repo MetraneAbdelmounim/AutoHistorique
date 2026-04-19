@@ -1,6 +1,6 @@
-// environment.ts (development)
+// environment.ts (development — ng serve)
 export const environment = {
   production: false,
-  apiUrl: 'http://10.190.100.176/api',
+  apiUrl: 'https://102.50.247.101:8443/api',
   appName: 'AutoHistorique'
 };

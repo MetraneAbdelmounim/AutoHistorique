@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Production backend over HTTPS (self-signed cert) -->
-    <!-- Trusts embedded cert + system CAs for this host only -->
+    <!-- Production backend over HTTPS (custom CA embedded in the APK) -->
     <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">102.50.247.101</domain>
         <domain includeSubdomains="false">10.190.100.176</domain>
         <trust-anchors>
-            <!-- Drop the server cert at android/app/src/main/res/raw/server_cert.pem
-                 (PEM format) to have the APK trust it out-of-the-box. -->
+            <!-- ca.crt copied to android/app/src/main/res/raw/server_cert.pem -->
             <certificates src="@raw/server_cert" />
             <certificates src="system" />
             <certificates src="user" />

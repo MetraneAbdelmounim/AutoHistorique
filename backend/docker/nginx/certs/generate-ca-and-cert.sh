@@ -8,7 +8,8 @@
 set -euo pipefail
 
 # ───── CONFIG — edit as needed ─────────────────────────────
-SERVER_IP="10.190.100.176"
+SERVER_IP="102.50.247.101"
+SERVER_IP_ALT="10.190.100.176"   # secondary (internal) IP, optional
 SERVER_DNS="localhost"
 CA_COMMON_NAME="AutoHistorique Root CA"
 SERVER_COMMON_NAME="AutoHistorique API"
@@ -62,6 +63,7 @@ subjectAltName = @alt_names
 
 [ alt_names ]
 IP.1  = $SERVER_IP
+IP.2  = $SERVER_IP_ALT
 DNS.1 = $SERVER_DNS
 EOF
 
@@ -78,6 +80,7 @@ subjectAltName         = @alt_names
 
 [ alt_names ]
 IP.1  = $SERVER_IP
+IP.2  = $SERVER_IP_ALT
 DNS.1 = $SERVER_DNS
 EOF
 
