@@ -12,29 +12,61 @@ const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/auth.routes');
 const vehicleRoutes = require('./routes/vehicle.routes');
 const accidentRoutes = require('./routes/accident.routes');
+const { initialize } = require('./config/initialize');
 
 const app = express();
 
-// Security
+// Trust proxy so express-rate-limit sees the real client IP (behind nginx)
+app.set('trust proxy', 1);
+
+// Security headers (helmet manages all the standard ones)
 app.use(helmet());
 
-// CORS — allow all origins (reflect the request origin back so that
-// `credentials: true` keeps working; plain '*' is incompatible with credentials).
+// CORS — restricted whitelist. Reflect origin back when it matches so
+// `credentials: true` keeps working (plain '*' is incompatible with credentials).
+const allowedOrigins = [
+  process.env.FRONTEND_URL,           // set in .env
+  'capacitor://localhost',            // Capacitor Android
+  'https://localhost',                // Capacitor WebView (Android scheme=https)
+  'ionic://localhost',                // Ionic legacy
+  'http://localhost:4200',            // Angular dev
+  'http://localhost:8100',            // Ionic dev
+].filter(Boolean);
+
 app.use(cors({
-  origin: true,
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);                // same-origin, curl, native
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error(`CORS blocked: ${origin}`));
+  },
   credentials: true
 }));
 
-// Rate limiting
-const limiter = rateLimit({
+// ─── Rate limiting ────────────────────────────────────────
+// Global — broad defense
+const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: { success: false, message: 'Trop de requêtes, réessayez dans 15 minutes.' }
 });
-app.use('/api', limiter);
+app.use('/api', globalLimiter);
 
-// Middleware
-app.use(express.json());
+// Strict — login + register brute-force protection
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 8,                             // 8 attempts / 15 min / IP
+  skipSuccessfulRequests: true,       // count failures only
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Trop de tentatives. Réessayez dans 15 minutes.' }
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
+// Body parser + logs
+app.use(express.json({ limit: '100kb' }));
 app.use(morgan(process.env.NODE_ENV === 'development' ? 'dev' : 'combined'));
 
 // Routes
@@ -58,10 +90,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Erreur serveur interne' });
 });
 
-// MongoDB connection
+// MongoDB connection + first-run initialization
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log(`✅ MongoDB connecté [${process.env.NODE_ENV}]`);
+    try {
+      await initialize();
+    } catch (e) {
+      console.error('⚠️  Auto-seed a échoué (non bloquant):', e.message);
+    }
     app.listen(process.env.PORT, () => {
       console.log(`🚀 Serveur démarré sur le port ${process.env.PORT} [${process.env.NODE_ENV}]`);
     });
