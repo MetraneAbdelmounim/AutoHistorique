@@ -20,7 +20,13 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Security headers (helmet manages all the standard ones)
-app.use(helmet());
+app.use(helmet({
+  hsts: {
+    maxAge: 31536000,      // 1 year — matches the nginx value, avoid duplicate
+    includeSubDomains: true,
+    preload: false         // set to true only if you submit to hstspreload.org
+  }
+}));
 
 // CORS — restricted whitelist. Reflect origin back when it matches so
 // `credentials: true` keeps working (plain '*' is incompatible with credentials).
