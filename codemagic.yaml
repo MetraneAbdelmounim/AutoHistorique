@@ -36,13 +36,20 @@ workflows:
             npx cap add ios
           fi
 
+      - name: Patch Podfile (bump iOS deployment target for Capacitor 8)
+        working_directory: frontend/ios/App
+        script: |
+          # Capacitor 8.x requires iOS 15.6+
+          sed -i.bak "s/platform :ios,.*/platform :ios, '15.6'/" Podfile
+          grep "platform :ios" Podfile
+
       - name: Sync Capacitor → iOS
         working_directory: frontend
         script: npx cap sync ios
 
       - name: Install CocoaPods
         working_directory: frontend/ios/App
-        script: pod install
+        script: pod install --repo-update
 
       # - name: Set up code signing
       #   script: xcode-project use-profiles
