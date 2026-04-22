@@ -63,6 +63,7 @@ workflows:
             -archivePath build/App.xcarchive \
             -destination "generic/platform=iOS Simulator" \
             clean archive \
+            IPHONEOS_DEPLOYMENT_TARGET=15.6 \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 
     artifacts:
